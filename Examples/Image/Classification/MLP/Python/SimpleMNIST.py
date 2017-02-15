@@ -79,16 +79,13 @@ def simple_mnist():
         tag='Training',
         num_epochs=num_sweeps_to_train_with)
 
-    session = training_session(
-        training_minibatch_source = reader_train,
-        trainer = trainer,
-        mb_size_schedule = minibatch_size_schedule(minibatch_size),
-        progress_printer = progress_printer,
-        model_inputs_to_mb_source_mapping = input_map,
-        progress_frequency = num_samples_per_sweep,
-        max_training_samples = num_samples_per_sweep * num_sweeps_to_train_with)
-	
-    session.train()
+    training_session(training_minibatch_source = reader_train,
+                     trainer = trainer,
+                     mb_size_schedule = minibatch_size_schedule(minibatch_size),
+                     model_inputs_to_mb_source_mapping = input_map,
+                     max_training_samples = num_samples_per_sweep * num_sweeps_to_train_with) \
+        .with_progress_printing(printer=progress_printer, frequency=num_samples_per_sweep) \
+        .train()
     
     # Load test data
     path = os.path.normpath(os.path.join(data_dir, "Test-28x28_cntk_text.txt"))

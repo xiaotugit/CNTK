@@ -159,7 +159,7 @@ def create_trainer(network, epoch_size, num_quantization_bits):
     return cntk.Trainer(network['output'], (network['ce'], network['pe']), parameter_learner)
 
 # Train and test
-def train_and_test(network, trainer, train_source, test_source, progress_printer, minibatch_size, epoch_size, restore):
+def train_and_test(network, trainer, train_source, test_source, printer, minibatch_size, epoch_size, restore):
 
     # define mapping from intput streams to network inputs
     input_map = {
@@ -167,23 +167,17 @@ def train_and_test(network, trainer, train_source, test_source, progress_printer
         network['label']: train_source.streams.labels
     }
 
-    training_session = cntk.training_session(
-        training_minibatch_source = train_source,
-        trainer = trainer,
-        model_inputs_to_mb_source_mapping = input_map,
-        mb_size_schedule = cntk.minibatch_size_schedule(minibatch_size),
-        progress_printer = progress_printer,
-#        checkpoint_frequency = epoch_size,
-        checkpoint_filename = os.path.join(model_path, model_name),
-#        save_all_checkpoints = True,
-        progress_frequency = epoch_size,
-        cv_source = test_source,
-        cv_mb_size_schedule = cntk.minibatch_size_schedule(minibatch_size),
-#        cv_frequency = epoch_size,
-        restore = restore)
+    mb_size_schedule = cntk.minibatch_size_schedule(minibatch_size))
 
-    # Train all minibatches
-    training_session.train()
+    # Train all minibatches 
+    cntk.training_session(trainer = trainer,
+                          training_minibatch_source = train_source, 
+                          model_inputs_to_mb_source_mapping = input_map, 
+                          mb_size_schedule = mb_size_schedule) \
+        .with_progress_printing(printer=printer, frequency=epoch_size) \
+        .with_checkpointing(filename=os.path.join(model_path, model_name), restore=restore) \
+        .with_cross_validation(source=test_source, schedule=mb_size_schedule) \
+        .train(device)
 
 # Train and evaluate the network.
 def alexnet_train_and_eval(train_data, test_data, num_quantization_bits=32, minibatch_size=256, epoch_size = 1281167, max_epochs=112,
