@@ -4763,7 +4763,10 @@ void Matrix<ElemType>::MultiplyAndWeightedAdd(ElemType alpha, const Matrix<ElemT
         }
         else if (a.m_matrixType == MatrixType::DENSE && b.m_matrixType == MatrixType::DENSE && c.m_matrixType == MatrixType::SPARSE) // GPU, DENSE * DENSE -> SPARSE
         {
-            GPUMatrix<ElemType> tmp(a.m_GPUMatrix->GetComputeDeviceId());
+            GPUMatrix<ElemType> tmp(
+                transposeA ? a.GetNumCols() : a.GetNumRows(),
+                transposeB ? b.GetNumRows() : b.GetNumCols(),
+                a.m_GPUMatrix->GetComputeDeviceId());
             GPUSparseMatrix<ElemType> tmpSparse(a.m_GPUMatrix->GetComputeDeviceId());
             GPUMatrix<ElemType>::MultiplyAndWeightedAdd(alpha, *a.m_GPUMatrix, transposeA, *b.m_GPUMatrix, transposeB, beta, tmp);
             tmpSparse.SetValue(tmp);

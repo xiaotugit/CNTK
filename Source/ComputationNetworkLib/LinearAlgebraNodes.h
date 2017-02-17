@@ -447,6 +447,39 @@ public:
 
         if (inputIndex == 0) // left derivative
         {
+            if (InputRef(1).Value().GetMatrixType() == SPARSE &&
+                InputRef(0).Gradient().GetMatrixType() == DENSE &&
+                Gradient().GetMatrixType() == DENSE)
+            {
+                // We need a sparse matrix for the gradient. We allocate a new one instead of switching the type in place
+                // since switching in place may affect other nodes who share this matrix due to memory sharing
+                // Note this normally only happen once (per minibatch) for embedding cases where all calculations are dense * sparse
+                auto& currentInput0GradientMatrixRef = InputRef(0).Gradient();
+                auto newInput0SparseGradientMatrix = std::make_shared<Matrix<ElemType>>(
+                        currentInput0GradientMatrixRef.GetNumRows(),
+                        currentInput0GradientMatrixRef.GetNumCols(),
+                        currentInput0GradientMatrixRef.GetPreferredDeviceId(),
+                        SPARSE,
+                        MatrixFormat::matrixFormatSparseBlockCol);
+                
+                newInput0SparseGradientMatrix->SetValue(currentInput0GradientMatrixRef);
+                auto& input0 = InputRef(0);
+                input0.GradientPtrRef() = newInput0SparseGradientMatrix;
+            }
+            else if (InputRef(0).Gradient().GetMatrixType() == SPARSE)
+            {
+                // for cases other than dense * sparse, if we found previously gradient accumulated with sparse, switch to dense
+                // this is a rare case and the performance is not optimized
+                auto& currentInput0GradientMatrixRef = InputRef(0).Gradient();
+                auto newInput0DenseGradientMatrix = std::make_shared<Matrix<ElemType>>(
+                    currentInput0GradientMatrixRef.GetNumRows(),
+                    currentInput0GradientMatrixRef.GetNumCols(),
+                    currentInput0GradientMatrixRef.GetPreferredDeviceId());
+
+                newInput0DenseGradientMatrix->SetValue(currentInput0GradientMatrixRef);
+                InputRef(0).GradientPtrRef() = newInput0DenseGradientMatrix;
+            }
+
             auto input0Gradient = OneSampleTensorFor(0,  /*gradient=*/true,  fr.AllowBroadcast());
             auto input1         = OneSampleTensorFor(1,  /*gradient=*/false, fr.AllowBroadcast());
             auto outputGradient = OneSampleTensorFor(-1, /*gradient=*/true,  fr);
@@ -594,23 +627,6 @@ public:
             // update if LearnableParameter
             Input(0)->ValidateInferInputDimsFrom(TensorShape(dimsA));
         }
-    }
-
-    virtual void AllocateGradientMatricesForInputs(MatrixPool& matrixPool) override
-    {
-        // this is a special handling case. We need to allocate sparse matrix directly instead of from pool.
-        if (Input(0)->NeedsGradient() && Input(1)->Value().GetMatrixType() == SPARSE)
-        {
-            InputRef(0).GradientPtrRef() = std::make_shared<Matrix<ElemType>>(0, // size would be initialized later
-                                                                              0,
-                                                                              Gradient().GetPreferredDeviceId(),
-                                                                              SPARSE,
-                                                                              MatrixFormat::matrixFormatSparseBlockCol);
-        }
-
-        // we need to call base allocation at end since we will need to allocate special ones first
-        // so that the default allocator will not allocate it again.
-        Base::AllocateGradientMatricesForInputs(matrixPool);
     }
 
     size_t OutputRank() const { return m_outputRank; }
