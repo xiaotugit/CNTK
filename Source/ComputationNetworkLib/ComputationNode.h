@@ -1467,6 +1467,9 @@ public:
     std::shared_ptr<Matrix<ElemType>>& GradientPtrRef() { return m_gradient; }
     // TODO: This is only used for testing whether a gradient has been allocated. Maybe reduce to bool HasGradient()?
 
+    MatrixType GetFavoriteGradientMatrixType() { return m_favoriteGradientMatrixType; }
+    void SetFavoriteGradientMatrixType(MatrixType requestType) { m_favoriteGradientMatrixType = requestType; }
+
 private:
 
     template<class E>
@@ -2086,6 +2089,8 @@ protected:
     shared_ptr<Matrix<ElemType>> m_value, m_gradient;
 
     static std::map<size_t, std::map<size_t, shared_ptr<Matrix<ElemType>>>> s_constOnes;
+
+    MatrixType m_favoriteGradientMatrixType = UNDETERMINED;
 };
 
 // convenience wrapper for ComputationNode::New()
