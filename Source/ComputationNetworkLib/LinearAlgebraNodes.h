@@ -478,13 +478,12 @@ public:
                 InputRef(0).GradientPtrRef() = newInput0SparseGradientMatrix;
                 InputRef(0).SetFavoriteGradientMatrixType(SPARSE);
             }
-            else
+            else if (InputRef(1).Value().GetMatrixType() == DENSE &&
+                     InputRef(0).GetFavoriteGradientMatrixType() == SPARSE)
             {
-                // for cases other than dense * sparse, if we found previously gradient accumulated with sparse, switch to dense
+                // for dense * dense, if we found previously gradient accumulated with sparse for input0, switch to dense
                 // this is a rare case and the performance is not optimized
-                if (InputRef(0).GetFavoriteGradientMatrixType() == SPARSE)
-                    InputRef(0).Gradient().SwitchToMatrixType(DENSE, matrixFormatDense, !overwriteInputGradient);
-
+                InputRef(0).Gradient().SwitchToMatrixType(DENSE, matrixFormatDense, !overwriteInputGradient);
                 InputRef(0).SetFavoriteGradientMatrixType(DENSE);
             }
 
@@ -504,7 +503,7 @@ public:
 
             if (InputRef(1).Gradient().GetMatrixType() == SPARSE)
             {
-                // for cases other than dense * sparse, if we found previously gradient accumulated with sparse, switch to dense
+                // we only support dense * sparse to have sparse gradient for input0, so if input1 has sparse gradient, switch to dense
                 // this is a rare case and the performance is not optimized
                 InputRef(1).Gradient().SwitchToMatrixType(DENSE, matrixFormatDense, !overwriteInputGradient);
             }
