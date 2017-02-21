@@ -823,7 +823,7 @@ public:
             if (m_convEng == nullptr)
             {
                 auto geometry = std::make_shared<ConvolveGeometry>(inputShape, m_kernelShape, m_mapCount, m_stride,
-                                                                   m_sharing, m_autoPad, m_lowerPad, m_upperPad);
+                                                                   m_sharing, m_autoPad, m_lowerPad, m_upperPad, true);
                 m_convEng = ConvolutionEngine<ElemType>::Create(geometry, m_deviceId, m_imageLayout,
                                                                 m_maxTempMemSizeInSamples, m_poolKind,
                                                                 ConvolutionEngineKind::All, NodeName());

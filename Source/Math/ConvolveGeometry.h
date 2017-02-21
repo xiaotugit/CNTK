@@ -81,7 +81,7 @@ public:
     size_t KernelCount() const { return m_kernelCount; }
 
     ConvolveGeometry(const TensorShape& inputShape, const TensorShape& kernelShape, const TensorShape& mapCount, const TensorShape& stride,
-                     const BoolVec& sharing, const BoolVec& autoPad, const TensorShape& lowerPad, const TensorShape& upperPad)
+                     const BoolVec& sharing, const BoolVec& autoPad, const TensorShape& lowerPad, const TensorShape& upperPad, const bool ceilOutDim = false)
                      : m_inputShape(inputShape), m_kernelShape(kernelShape), m_mapCount(mapCount), m_stride(stride), m_sharing(sharing),
                      m_autoPad(autoPad), m_lowerPad(lowerPad), m_upperPad(upperPad)
     {
@@ -96,7 +96,7 @@ public:
         assert(m_upperPad.GetRank() == 1 || m_upperPad.GetRank() == m_inputShape.GetRank());
         
         m_outputShape = ComputeOutputShape(m_inputShape, m_kernelShape, m_mapCount, m_stride,
-                                           m_sharing, m_autoPad, m_lowerPad, m_upperPad);
+                                           m_sharing, m_autoPad, m_lowerPad, m_upperPad, ceilOutDim);
         assert(m_inputShape.GetRank() == m_outputShape.GetRank());
 
         size_t dimCount = inputShape.GetRank();
