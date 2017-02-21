@@ -816,7 +816,7 @@ public:
         InferReductionDims(inputShape, TensorShape());
 
         auto outDims = ConvolveGeometry::ComputeOutputShape(inputShape, m_kernelShape, m_mapCount, m_stride,
-                                                            m_sharing, m_autoPad, m_lowerPad, m_upperPad);
+                                                            m_sharing, m_autoPad, m_lowerPad, m_upperPad, true);
         SetDims(outDims, HasMBLayout());
         if (isFinalValidationPass)
         {

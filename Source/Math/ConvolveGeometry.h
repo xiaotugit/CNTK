@@ -8,6 +8,8 @@
 #include "TensorShape.h"
 #include <iterator>
 
+#pragma optimize("", off)
+
 namespace Microsoft { namespace MSR { namespace CNTK {
 
 // Notes:
@@ -29,7 +31,9 @@ public:
     using BoolVec = std::vector<bool>;
 
     const TensorShape& InputShape() const { return m_inputShape; }
-    const TensorShape& OutputShape() const { return m_outputShape; }
+    const TensorShape& OutputShape() const { 
+        return m_outputShape; 
+    }
     const TensorShape& KernelShape() const { return m_kernelShape; }
     const TensorShape& MapCount() const { return m_mapCount; }
     const TensorShape& Stride() const { return m_stride; }
@@ -411,7 +415,7 @@ public:
 
     // Computes output shape given input shape and other convolution parameters.
     static TensorShape ComputeOutputShape(const TensorShape& inputShape, const TensorShape& kernelShape, const TensorShape& mapCount, const TensorShape& stride,
-                                          const BoolVec& sharing, const BoolVec& autoPad, const TensorShape& lowerPad, const TensorShape& upperPad)
+                                          const BoolVec& sharing, const BoolVec& autoPad, const TensorShape& lowerPad, const TensorShape& upperPad, const bool ceilOutDim = false)
     {
         if (inputShape.GetRank() != kernelShape.GetRank())
             InvalidArgument("Convolution input and kernel tensors must have the same rank.");
@@ -448,7 +452,8 @@ public:
             {
                 dim += lo + hi;
             }
-            size_t dimOut = (dim - kernelShape[i]) / delta + 1;
+            float preciseDimOut = (float)(dim - kernelShape[i]) / delta + 1;
+            size_t dimOut = static_cast<size_t>(ceilOutDim ? ceil(preciseDimOut) : floor(preciseDimOut));
             // When LowerPad and/or UpperPad are specified (i.e. > 0), we insist that the kernel applications
             // fill the entire space.
             if (!autoPadCur && (lo > 0 || hi > 0))
@@ -479,8 +484,9 @@ public:
     // Computes input shape given output shape and other convolution parameters.
     // Used in deconvolution operation.
     static TensorShape ComputeInputShape(const TensorShape& outputShape, const TensorShape& kernelShape, const TensorShape& mapCount, const TensorShape& stride,
-                                         const BoolVec& sharing, const BoolVec& autoPad, const TensorShape& lowerPad, const TensorShape& upperPad)
+                                         const BoolVec& sharing, const BoolVec& autoPad, const TensorShape& lowerPad, const TensorShape& upperPad, bool ceilOutDim = false)
     {
+        UNUSED(ceilOutDim);
         if (outputShape.GetRank() != kernelShape.GetRank())
             InvalidArgument("Convolution output and kernel tensors must have the same rank.");
         if (mapCount.GetRank() != 1 && outputShape.GetRank() != mapCount.GetRank())
