@@ -470,10 +470,7 @@ public:
                         SPARSE,
                         MatrixFormat::matrixFormatSparseBlockCol);
 
-                if (!overwriteInputGradient)
-                {
-                    newInput0SparseGradientMatrix->AssignValuesOf(currentInput0GradientMatrixRef);
-                }
+                // no need not set sparse with value from dense as its just cleared to zero when PreferredGradientMatrixType == UNDETERMINED
 
                 InputRef(0).GradientPtrRef() = newInput0SparseGradientMatrix;
                 InputRef(0).SetPreferredGradientMatrixType(SPARSE);
