@@ -450,7 +450,7 @@ public:
         if (inputIndex == 0) // left derivative
         {
             if (InputRef(1).Value().GetMatrixType() == SPARSE &&
-                InputRef(0).GetFavoriteGradientMatrixType() == UNDETERMINED &&
+                InputRef(0).GetPreferredGradientMatrixType() == UNDETERMINED &&
                 Gradient().GetMatrixType() == DENSE)
             {
                 // Special case for DENSE * SPARSE -> DENSE, which leads to a SPARSE gradient for input0 (common for embedding)
@@ -476,15 +476,15 @@ public:
                 }
 
                 InputRef(0).GradientPtrRef() = newInput0SparseGradientMatrix;
-                InputRef(0).SetFavoriteGradientMatrixType(SPARSE);
+                InputRef(0).SetPreferredGradientMatrixType(SPARSE);
             }
             else if (InputRef(1).Value().GetMatrixType() == DENSE &&
-                     InputRef(0).GetFavoriteGradientMatrixType() == SPARSE)
+                     InputRef(0).GetPreferredGradientMatrixType() == SPARSE)
             {
                 // for dense * dense, if we found previously gradient accumulated with sparse for input0, switch to dense
                 // this is a rare case and the performance is not optimized
                 InputRef(0).Gradient().SwitchToMatrixType(DENSE, matrixFormatDense, !overwriteInputGradient);
-                InputRef(0).SetFavoriteGradientMatrixType(DENSE);
+                InputRef(0).SetPreferredGradientMatrixType(DENSE);
             }
 
             auto input0Gradient = OneSampleTensorFor(0,  /*gradient=*/true,  fr.AllowBroadcast());
@@ -507,7 +507,7 @@ public:
                 // this is a rare case and the performance is not optimized
                 InputRef(1).Gradient().SwitchToMatrixType(DENSE, matrixFormatDense, !overwriteInputGradient);
             }
-            InputRef(1).SetFavoriteGradientMatrixType(DENSE);
+            InputRef(1).SetPreferredGradientMatrixType(DENSE);
 
             if (overwriteInputGradient)
                 input1Gradient.AssignMatrixProductOf(false/*transC*/, input0, !m_transpose/*transA*/, outputGradient, false/*transB*/);
@@ -656,7 +656,7 @@ public:
                 SPARSE,
                 MatrixFormat::matrixFormatSparseBlockCol);
 
-            InputRef(0).SetFavoriteGradientMatrixType(SPARSE);
+            InputRef(0).SetPreferredGradientMatrixType(SPARSE);
         }
 
         // we need to call base allocation at end since we will need to allocate special ones first
