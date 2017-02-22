@@ -340,8 +340,8 @@ namespace CNTK
     // Note: The no sequence axis corresponds to a special case where there is no sequence axis (i.e. has been reduced over)
     // and the special name is used to identify this when loading back a model saved in CNTK v1 format. This will not really be needed
     // when the new CNTK v2 model serialization format is ready.
-    /*static*/ const std::wstring CompositeFunction::InternalDefaultDynamicAxisName = L"*";
-    /*static*/ const std::wstring CompositeFunction::InternalNoSequenceAxisName = L"__noSequenceAxis";
+    /*static*/ const std::wstring CompositeFunction::InternalDefaultDynamicAxisName = ComputationNodeBase::DefaultDynamicAxisName;
+    /*static*/ const std::wstring CompositeFunction::InternalNoSequenceAxisName = ComputationNodeBase::DefaultNoSequenceAxisName;
 
     // Recursively create a sub-network of ComputationNode instances corresponding to the graph of Functions 
     // underlying the specified 'variable' and return the ComputationNode instance that corresponds to the 
