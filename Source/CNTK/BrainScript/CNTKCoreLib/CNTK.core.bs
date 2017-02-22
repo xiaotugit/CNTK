@@ -102,18 +102,18 @@ ConvolutionalLayer {numOutputChannels,   # e.g. (1) or BS.Constants.None
 # ConvolutionTransposeLayer -- create a convolution transpose layer with optional non-linearity
 ConvolutionTransposeLayer {numOutputChannels,
                            filterShape,         # e.g. (3:3)
-						   numInputChannels,
-						   bias = true, 
-						   activation = (x=>x), 
-						   init = 'glorotUniform', 
-						   initValueScale = 0.001, 
-						   initBias = 0, 
-						   stride = 1, 
-						   sharing = true, 
-						   autoPadding = false, 
-						   lowerPad = 0, 
-						   upperPad = 0, 
-						   maxTempMemSizeInSamples = 0} =
+                           numInputChannels,
+                           bias = true, 
+                           activation = (x=>x), 
+                           init = 'glorotUniform', 
+                           initValueScale = 0.001, 
+                           initBias = 0, 
+                           stride = 1, 
+                           sharing = true, 
+                           autoPadding = false, 
+                           lowerPad = 0, 
+                           upperPad = 0, 
+                           maxTempMemSizeInSamples = 0} =
 {
     outputChannelsShape = _AsArray (numOutputChannels)
     kernelShape = _ConcatArrays (filterShape, outputChannelsShape) 
