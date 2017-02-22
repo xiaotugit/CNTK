@@ -479,11 +479,13 @@ public:
                 InputRef(0).SetPreferredGradientMatrixType(SPARSE);
             }
             else if (InputRef(1).Value().GetMatrixType() == DENSE &&
-                     InputRef(0).GetPreferredGradientMatrixType() == SPARSE)
+                     InputRef(0).GetPreferredGradientMatrixType() != DENSE)
             {
                 // for dense * dense, if we found previously gradient accumulated with sparse for input0, switch to dense
                 // this is a rare case and the performance is not optimized
-                InputRef(0).Gradient().SwitchToMatrixType(DENSE, matrixFormatDense, !overwriteInputGradient);
+                if (InputRef(0).GetPreferredGradientMatrixType() == SPARSE)
+                    InputRef(0).Gradient().SwitchToMatrixType(DENSE, matrixFormatDense, !overwriteInputGradient);
+
                 InputRef(0).SetPreferredGradientMatrixType(DENSE);
             }
 
@@ -643,25 +645,6 @@ public:
             // update if LearnableParameter
             Input(0)->ValidateInferInputDimsFrom(TensorShape(dimsA));
         }
-    }
-
-    virtual void AllocateGradientMatricesForInputs(MatrixPool& matrixPool) override
-    {
-        // this is a special handling case. We need to allocate sparse matrix directly instead of from pool.
-        if (Input(0)->NeedsGradient() && Input(1)->Value().GetMatrixType() == SPARSE)
-        {
-            InputRef(0).GradientPtrRef() = std::make_shared<Matrix<ElemType>>(0, // size would be initialized later
-                0,
-                Gradient().GetPreferredDeviceId(),
-                SPARSE,
-                MatrixFormat::matrixFormatSparseBlockCol);
-
-            InputRef(0).SetPreferredGradientMatrixType(SPARSE);
-        }
-
-        // we need to call base allocation at end since we will need to allocate special ones first
-        // so that the default allocator will not allocate it again.
-        Base::AllocateGradientMatricesForInputs(matrixPool);
     }
 
     size_t OutputRank() const { return m_outputRank; }
